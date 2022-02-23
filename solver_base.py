@@ -53,11 +53,13 @@ class Solver_Base:
                 else:
                     removed.append(key)
 
+        score_prev = self.overall_score()
         for ing in removed:
-            score_prev = self.overall_score()
             self.ingredients.append(ing)
-            if self.overall_score() < score_prev:
-                self.ingredients.remove(ing)
+            score_new = self.overall_score()
+            if score_new < score_prev:
+                self.ingredients.pop()
+                score_prev = score_new
 
 
     # Remember: only save if new solution is better
@@ -86,9 +88,10 @@ class Solver_Base:
         #     if pizza_liked and not pizza_disliked:
         #         score += 1
 
+        ings = set(self.ingredients)
         for ing_liked, ing_disliked in zip(self.ing_liked, self.ing_disliked):
-            pizza_liked = sum([ing in self.ingredients for ing in ing_liked]) == len (ing_liked)
-            pizza_disliked = sum([ing in self.ingredients for ing in ing_disliked]) > 0
+            pizza_liked = sum([ing in ings for ing in ing_liked]) == len (ing_liked)
+            pizza_disliked = sum([ing in ings for ing in ing_disliked]) > 0
             if pizza_liked and not pizza_disliked:
                 score += 1
 
@@ -100,6 +103,8 @@ if __name__ == '__main__':
     test = Solver_Base(files[4])
     print(test.count_ing_list(test.ing_disliked))
     print(test.count_ing_list(test.ing_liked))
+    print(len(test.count_ing_list(test.ing_disliked)))
+    print(len(test.count_ing_list(test.ing_liked)))
     print(test.num_clients)
     # print(test.ing_liked)
     # print(test.ing_disliked)
