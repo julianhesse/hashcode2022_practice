@@ -1,5 +1,6 @@
 from util import prep_dir
 import itertools
+import numpy as np
 
 
 class Solver_Base:
@@ -59,8 +60,60 @@ class Solver_Base:
             score_new = self.overall_score()
             if score_new < score_prev:
                 self.ingredients.pop()
+            else:
                 score_prev = score_new
 
+        removed = list(set(removed))
+
+        for i in range(4):
+
+            for ing in self.ingredients:
+                self.ingredients.remove(ing)
+                score_new = self.overall_score()
+                if score_new < score_prev:
+                    self.ingredients.append(ing)
+                else:
+                    score_prev = score_new
+                    removed.append(ing)
+
+            self.ingredients = list(set(self.ingredients))
+
+            for ing in removed:
+                self.ingredients.append(ing)
+                score_new = self.overall_score()
+                if score_new < score_prev:
+                    self.ingredients.pop()
+                else:
+                    score_prev = score_new
+
+            removed = list(set(removed))
+
+        self.ingredients = list(set(self.ingredients))
+
+    def random_solution(self):
+        liked_counts = self.count_ing_list(self.ing_liked)
+        disliked_counts = self.count_ing_list(self.ing_disliked)
+        self.ingredients = list(liked_counts.keys())
+
+        removed = []
+
+        for key, value in disliked_counts.items():
+            if key in liked_counts and liked_counts[key] < value:
+                score_prev = self.overall_score()
+                self.ingredients.remove(key)
+                if self.overall_score() < score_prev:
+                    self.ingredients.append(key)
+                else:
+                    removed.append(key)
+
+        score_prev = self.overall_score()
+        random_selection = np.random.choice(removed, len(removed)*2)
+        for ing in random_selection:
+            self.ingredients.append(ing)
+            score_new = self.overall_score()
+            if score_new < score_prev:
+                self.ingredients.pop()
+                score_prev = score_new
 
     # Remember: only save if new solution is better
     def save_solution(self, name=None):
@@ -100,9 +153,9 @@ class Solver_Base:
 
 if __name__ == '__main__':
     files = ["a_an_example.in", "b_basic.in", "c_coarse.in", "d_difficult.in", "e_elaborate.in"]
-    test = Solver_Base(files[4])
-    print(test.count_ing_list(test.ing_disliked))
-    print(test.count_ing_list(test.ing_liked))
+    test = Solver_Base(files[2])
+    # print(test.count_ing_list(test.ing_disliked))
+    # print(test.count_ing_list(test.ing_liked))
     print(len(test.count_ing_list(test.ing_disliked)))
     print(len(test.count_ing_list(test.ing_liked)))
     print(test.num_clients)
